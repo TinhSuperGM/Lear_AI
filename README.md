@@ -1,30 +1,20 @@
-# AI Study Buddy v2
+# AI Study Buddy
 
-A compact public-ready study app with:
-- 3 learning modes: Meaning / Memory / Logic
-- multilingual UI
-- hidden Groq-backed helper modal
-- chat-sized layout that works on desktop and mobile
-- spaced repetition / review deck / streak
-- easy-explanation and summary tools
+## Deploy on Vercel
+1. Push this repo to GitHub.
+2. Import to Vercel.
+3. Set environment variable:
+   - GROQ_API_KEY = your_private_groq_key
+4. Deploy.
 
-## Files
-- `index.html` — frontend
-- `api/chat.js` — study flow (analyze, judge, final, explain, summarize)
-- `api/help.js` — helper modal
-- `vercel.json` — Vercel function config
-- `package.json` — marks ESM for the API files
-
-## Setup on Vercel
-1. Push this folder to GitHub
-2. Import into Vercel
-3. Add environment variable:
-   - `GROQ_API_KEY`
-4. Optional variables:
-   - `GROQ_MODEL`
-   - `GROQ_HELP_MODEL`
-5. Deploy
-
-## Local usage
-- Open `index.html` with Live Server for UI testing
-- The API routes need Vercel or another Node server to run
+## Notes
+- Study mode uses the API key entered by the user.
+- Help mode uses the private server key in GROQ_API_KEY.
+- No sample content is included.
+- The app supports:
+  - Meaning
+  - Memory
+  - Logic
+  - Study/rest timer
+  - Focus mode
+  - Helper modal
