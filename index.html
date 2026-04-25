@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Study Buddy v2</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:rgba(16,22,35,.92);
+      --panel2:#131b2b;
+      --panel3:#172238;
+      --text:#e8eef7;
+      --muted:#9aa6b7;
+      --accent:#73d8ff;
+      --accent2:#a78bfa;
+      --good:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --border:#273247;
+      --shadow:0 18px 50px rgba(0,0,0,.32);
+      --radius:20px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top, rgba(115,216,255,.12), transparent 30%),
+        radial-gradient(circle at right top, rgba(167,139,250,.12), transparent 24%),
+        linear-gradient(180deg,#08101b, var(--bg));
+      min-height:100vh;
+    }
+    body.focus-mode .left-col{display:none}
+    body.focus-mode .wrap{grid-template-columns:1fr;max-width:1080px}
+    .wrap{
+      max-width:1320px;
+      margin:0 auto;
+      padding:16px;
+      display:grid;
+      grid-template-columns:minmax(300px,360px) minmax(0,1fr);
+      gap:14px;
+      align-items:start;
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      backdrop-filter:blur(10px);
+    }
+    .left-col,.right-col{padding:16px}
+    .left-col{max-height:92vh; overflow:auto}
+    .header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px
+    }
+    h1{
+      margin:0;
+      font-size:26px;
+      line-height:1.1;
+      letter-spacing:-.02em
+    }
+    .subtitle{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      color:#061018;
+      background:linear-gradient(135deg,var(--accent),#c7fff6);
+      white-space:nowrap
+    }
+    .section{
+      margin-top:14px;
+      padding-top:14px;
+      border-top:1px solid rgba(255,255,255,.06)
+    }
+    label{
+      display:block;
+      margin:12px 0 8px;
+      color:var(--muted);
+      font-size:13px
+    }
+    input,textarea,select{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:var(--panel2);
+      color:var(--text);
+      padding:12px 13px;
+      font-size:14px;
+      outline:none;
+      transition:border-color .12s ease, box-shadow .12s ease, transform .12s ease;
+    }
+    textarea{
+      min-height:160px;
+      resize:vertical;
+      line-height:1.55
+    }
+    input:focus,textarea:focus,select:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(115,216,255,.12)
+    }
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+    button{
+      border:0;
+      border-radius:14px;
+      padding:11px 14px;
+      font-weight:800;
+      cursor:pointer;
+      color:#061018;
+      background:linear-gradient(135deg,var(--accent),#c7fff6);
+      transition:transform .12s ease, opacity .12s ease, filter .12s ease;
+    }
+    button:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.02)}
+    button:disabled{cursor:not-allowed;opacity:.6}
+    button.secondary{
+      background:#243045;
+      color:var(--text);
+      border:1px solid var(--border)
+    }
+    button.danger{
+      background:linear-gradient(135deg,#fb7185,#fda4af);
+      color:#260810
+    }
+    button.good{
+      background:linear-gradient(135deg,#34d399,#bff7d5);
+      color:#061018
+    }
+    button.ghost{
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      border:1px solid var(--border)
+    }
+    .small{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+      margin-top:10px
+    }
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+      margin-top:14px
+    }
+    .stat{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px
+    }
+    .stat .k{
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      margin-bottom:6px
+    }
+    .stat .v{
+      font-size:18px;
+      font-weight:900
+    }
+    .summary-box{
+      margin-top:14px;
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px
+    }
+    .summary-box h3{
+      margin:0 0 8px;
+      font-size:15px
+    }
+    .summary-box ul{
+      margin:8px 0 0 18px;
+      padding:0;
+      color:var(--text)
+    }
+    .summary-box li{margin:6px 0; line-height:1.45}
+    .status{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
+      line-height:1.45;
+      white-space:pre-wrap
+    }
+    .progress{
+      width:100%;
+      height:10px;
+      background:rgba(255,255,255,.05);
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      margin-top:10px
+    }
+    .progress>div{
+      height:100%;
+      width:0%;
+      background:linear-gradient(135deg,var(--accent),var(--good));
+      transition:width .2s ease
+    }
+    .tag-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px
+    }
+    .tag{
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border)
+    }
+
+    .chat{
+      height:calc(100vh - 32px);
+      max-height:calc(100vh - 32px);
+      display:flex;
+      flex-direction:column;
+      overflow:hidden
+    }
+    .chat-head{
+      padding:16px 18px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      background:rgba(255,255,255,.02)
+    }
+    .chat-head strong{
+      display:block;
+      font-size:18px;
+      margin-bottom:4px
+    }
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45
+    }
+    .badge{
+      font-size:12px;
+      color:#061018;
+      background:linear-gradient(135deg,var(--accent),#c7fff6);
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:900;
+      white-space:nowrap
+    }
+    #messages{
+      flex:1;
+      padding:18px;
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.02), transparent 18%),
+        rgba(11,16,32,.20);
+      scroll-behavior:smooth
+    }
+    .msg{
+      max-width:min(860px, 88%);
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      white-space:pre-wrap;
+      line-height:1.55;
+      word-wrap:break-word;
+      overflow-wrap:anywhere
+    }
+    .msg.user{
+      align-self:flex-end;
+      background:rgba(167,139,250,.16);
+      border-color:rgba(167,139,250,.35)
+    }
+    .msg.ai{
+      align-self:flex-start;
+      background:rgba(115,216,255,.08);
+      border-color:rgba(115,216,255,.22)
+    }
+    .msg.sys{
+      align-self:center;
+      max-width:96%;
+      background:rgba(52,211,153,.08);
+      border-color:rgba(52,211,153,.20);
+      color:#d7ffe9;
+      font-size:13px
+    }
+    .msg.bad{
+      background:rgba(251,113,133,.10);
+      border-color:rgba(251,113,133,.28);
+      color:#ffd7df
+    }
+    .msg.warn{
+      background:rgba(251,191,36,.10);
+      border-color:rgba(251,191,36,.25);
+      color:#fff1c4
+    }
+    .composer{
+      border-top:1px solid var(--border);
+      padding:14px;
+      display:flex;
+      gap:10px;
+      background:rgba(16,22,35,.98)
+    }
+    .composer input{flex:1}
+    .quick-row{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px
+    }
+    .quick-row button{padding:9px 12px; font-size:12px}
+    .overlay{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      background:rgba(6,10,18,.74);
+      z-index:50;
+      padding:16px
+    }
+    .overlay.show{display:flex}
+    .modal{
+      width:min(1200px, 100%);
+      height:min(92vh, 980px);
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:14px;
+      background:rgba(10,14,24,.96);
+      border:1px solid var(--border);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden
+    }
+    .modal-left,.modal-right{
+      padding:18px;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column
+    }
+    .modal-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px
+    }
+    .guide-list{
+      margin:10px 0 0;
+      padding-left:18px;
+      color:var(--text);
+      line-height:1.55
+    }
+    .guide-list li{margin:8px 0}
+    .callout{
+      padding:12px 14px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      line-height:1.5
+    }
+    .callout strong{color:var(--accent)}
+    .guide-chat{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      flex:1;
+      min-height:0
+    }
+    #guideMessages{
+      flex:1;
+      min-height:0;
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      padding:12px;
+      background:rgba(255,255,255,.02);
+      border:1px solid var(--border);
+      border-radius:18px
+    }
+    .guide-composer{display:flex; gap:10px}
+    .guide-composer input{flex:1}
+    .kbd{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:2px 8px;
+      border:1px solid var(--border);
+      border-bottom-width:2px;
+      border-radius:8px;
+      background:rgba(255,255,255,.04);
+      font-size:12px;
+      color:var(--text)
+    }
+    .language-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:8px
+    }
+    .language-badges button{
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px
+    }
+    .fade {
+      animation:fade .18s ease;
+    }
+    @keyframes fade {
+      from{opacity:.3; transform:translateY(4px)}
+      to{opacity:1; transform:translateY(0)}
+    }
+
+    @media (max-width: 1100px){
+      .modal{grid-template-columns:1fr; height:95vh}
+    }
+    @media (max-width: 980px){
+      .wrap{grid-template-columns:1fr}
+      .chat{height:72vh; max-height:72vh}
+      .left-col{max-height:none}
+      .stats{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width: 640px){
+      .wrap{padding:10px}
+      .left-col,.right-col{padding:12px}
+      .chat{height:68vh; max-height:68vh}
+      .row{grid-template-columns:1fr}
+      .stats{grid-template-columns:repeat(2,1fr)}
+      h1{font-size:22px}
+      .modal{height:96vh}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card left-col">
+      <div class="header">
+        <div>
+          <h1 id="uiTitle">🤖 AI Study Buddy</h1>
+          <p class="subtitle" id="uiSubtitle">Học theo mục tiêu, nhớ lâu hơn, hiểu sâu hơn, và đỡ bị quá tải.</p>
+        </div>
+        <div class="pill" id="modeBadge">READY</div>
+      </div>
+
+      <div class="section">
+        <label id="labelLanguage">Ngôn ngữ</label>
+        <select id="languageSelect">
+          <option value="vi">Tiếng Việt</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="ja">日本語</option>
+        </select>
+
+        <div class="language-badges" id="languageBadges"></div>
+
+        <label id="labelMode">Chế độ học</label>
+        <select id="studyMode">
+          <option value="meaning">Ý nghĩa</option>
+          <option value="memory">Ghi nhớ</option>
+          <option value="logic">Tính toán logic</option>
+        </select>
+
+        <div class="row">
+          <div>
+            <label id="labelQuestionCount">Số câu hỏi</label>
+            <select id="questionCount">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="7">7</option>
+            </select>
+          </div>
+          <div>
+            <label id="labelRest">Nhịp học</label>
+            <select id="restMode">
+              <option value="auto">Tự động</option>
+              <option value="short">Ngắn</option>
+              <option value="normal" selected>Vừa</option>
+              <option value="long">Dài</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="k" id="kRound">Vòng</div><div class="v" id="roundStat">0</div></div>
+          <div class="stat"><div class="k" id="kCorrect">Đúng</div><div class="v" id="correctStat">0</div></div>
+          <div class="stat"><div class="k" id="kWrong">Sai</div><div class="v" id="wrongStat">0</div></div>
+          <div class="stat"><div class="k" id="kStreak">Streak</div><div class="v" id="streakStat">0</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <label id="labelSource">Nội dung cần học</label>
+        <textarea id="sourceText" placeholder="Dán bài học, đề bài, đoạn văn, công thức, hoặc câu hỏi bạn muốn hiểu rõ..."></textarea>
+
+        <div class="quick-row">
+          <button class="ghost" onclick="setSample('meaning')">Mẫu Ý nghĩa</button>
+          <button class="ghost" onclick="setSample('memory')">Mẫu Ghi nhớ</button>
+          <button class="ghost" onclick="setSample('logic')">Mẫu Logic</button>
+        </div>
+
+        <div class="btns">
+          <button id="startBtn" onclick="startLearning()">Bắt đầu</button>
+          <button class="secondary" onclick="summarizeNow()">Tóm tắt</button>
+          <button class="good" onclick="explainEasier()">Giải thích dễ hơn</button>
+          <button class="secondary" onclick="toggleFocusMode()">Focus</button>
+          <button class="secondary" onclick="openGuide()">Hướng dẫn</button>
+          <button class="secondary" onclick="openReviewDeck()">Ôn câu sai</button>
+          <button class="danger" onclick="resetApp()">Reset</button>
+        </div>
+      </div>
+
+      <div class="summary-box">
+        <h3 id="uiStatusTitle">Trạng thái</h3>
+        <div id="statusText" class="status">Chưa bắt đầu.</div>
+        <div class="progress"><div id="progressBar"></div></div>
+        <div class="tag-row" id="tagRow"></div>
+      </div>
+
+      <div class="small" id="uiNotes">
+        App này dùng backend Vercel để giữ key an toàn. Chế độ học sẽ đổi cách AI dạy:
+        Ý nghĩa = hiểu sâu, Ghi nhớ = active recall + mnemonic, Tính toán logic = từng bước, không nhảy cóc.
+      </div>
+    </div>
+
+    <div class="card right-col chat">
+      <div class="chat-head">
+        <div>
+          <strong id="chatTitle">Hội thoại học tập</strong>
+          <div class="hint" id="chatHint">Nhập câu trả lời ở dưới. AI sẽ hỏi theo nhịp, rồi chốt bằng câu hỏi tổng.</div>
+        </div>
+        <div class="badge" id="phaseBadge">READY</div>
+      </div>
+      <div id="messages"></div>
+      <div class="composer">
+        <input id="answerInput" placeholder="Nhập câu trả lời..." onkeydown="if(event.key==='Enter') sendAnswer()" />
+        <button onclick="sendAnswer()">Gửi</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="guideOverlay" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-left">
+        <div class="modal-top">
+          <div>
+            <h1 id="guideTitle">📘 Hướng dẫn</h1>
+            <p class="subtitle" id="guideSubtitle">Cách dùng app, cách học hiệu quả, và cách xử lý lỗi thường gặp.</p>
+          </div>
+          <button class="secondary" onclick="closeGuide()">Đóng</button>
+        </div>
+
+        <div class="callout" id="guideCallout">
+          <strong>3 chế độ học:</strong><br>
+          • Ý nghĩa: hiểu khái niệm, bản chất, ví dụ gần gũi.<br>
+          • Ghi nhớ: active recall, lặp lại cách quãng, mẹo nhớ.<br>
+          • Tính toán logic: chia bước, kiểm tra lý do, chốt kết quả.
+        </div>
+
+        <ul class="guide-list" id="guideList">
+          <li>Hãy dán nội dung ngắn trước, rồi tăng dần độ dài khi app chạy ổn.</li>
+          <li>Nếu bài dễ quên, chọn Ghi nhớ. Nếu là Toán/Lý, chọn Tính toán logic. Nếu là Sử/Văn/khái niệm, chọn Ý nghĩa.</li>
+          <li>Học tốt hơn khi trả lời bằng lời của bạn, không chỉ chép đáp án.</li>
+        </ul>
+
+        <div class="summary-box">
+          <h3 id="psychTitle">Biện pháp học theo tâm lý học</h3>
+          <ul id="psychList">
+            <li>Active recall: nhớ lại thay vì đọc lại.</li>
+            <li>Chunking: chia bài thành từng mảng nhỏ.</li>
+            <li>Spaced repetition: ôn lại sau khoảng cách thời gian.</li>
+            <li>Dual coding: dùng ví dụ, hình ảnh, câu chuyện.</li>
+            <li>Reward nhỏ: cho não cảm giác “mình đang tiến bộ”.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="modal-right">
+        <div class="modal-top">
+          <div>
+            <strong id="helperTitle">🤏 Groq mini helper</strong>
+            <div class="hint" id="helperHint">Dùng API backend ẩn để hỏi nhanh các chỗ chưa hiểu.</div>
+          </div>
+          <div class="badge" id="guideBadge">HELP</div>
+        </div>
+
+        <div class="guide-chat">
+          <div id="guideMessages"></div>
+          <div class="guide-composer">
+            <input id="guideInput" placeholder="Ví dụ: Cách lấy API key Groq?" onkeydown="if(event.key==='Enter') sendGuideMessage()" />
+            <button onclick="sendGuideMessage()">Hỏi</button>
+          </div>
+          <div class="btns" style="margin:0">
+            <button class="secondary" onclick="guideQuick('Cách lấy API key Groq?')">API key</button>
+            <button class="secondary" onclick="guideQuick('Nên chọn chế độ học nào?')">Chế độ</button>
+            <button class="secondary" onclick="guideQuick('Tại sao câu trả lời của tôi bị sai?')">Lỗi học</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const LANG = {
+  vi: {
+    title: '🤖 AI Study Buddy',
+    subtitle: 'Học theo mục tiêu, nhớ lâu hơn, hiểu sâu hơn, và đỡ bị quá tải.',
+    mode: 'Chế độ học',
+    language: 'Ngôn ngữ',
+    qcount: 'Số câu hỏi',
+    rest: 'Nhịp học',
+    source: 'Nội dung cần học',
+    start: 'Bắt đầu',
+    summary: 'Tóm tắt',
+    easier: 'Giải thích dễ hơn',
+    focus: 'Focus',
+    guide: 'Hướng dẫn',
+    review: 'Ôn câu sai',
+    reset: 'Reset',
+    status: 'Trạng thái',
+    chatTitle: 'Hội thoại học tập',
+    chatHint: 'Nhập câu trả lời ở dưới. AI sẽ hỏi theo nhịp, rồi chốt bằng câu hỏi tổng.',
+    guideTitle: '📘 Hướng dẫn',
+    guideSubtitle: 'Cách dùng app, cách học hiệu quả, và cách xử lý lỗi thường gặp.',
+    helperTitle: '🤏 Groq mini helper',
+    helperHint: 'Dùng API backend ẩn để hỏi nhanh các chỗ chưa hiểu.',
+    helperPlaceholder: 'Ví dụ: Cách lấy API key Groq?',
+    helperDefault: 'Mình là trợ lý nhỏ, hỏi gì cũng được.',
+    notes: 'App này dùng backend Vercel để giữ key an toàn. Chế độ học sẽ đổi cách AI dạy: Ý nghĩa = hiểu sâu, Ghi nhớ = active recall + mnemonic, Tính toán logic = từng bước, không nhảy cóc.',
+    answerPlaceholder: 'Nhập câu trả lời...',
+  },
+  en: {
+    title: '🤖 AI Study Buddy',
+    subtitle: 'Learn with purpose, remember longer, understand deeper, and avoid overload.',
+    mode: 'Study mode',
+    language: 'Language',
+    qcount: 'Questions',
+    rest: 'Study pace',
+    source: 'Learning content',
+    start: 'Start',
+    summary: 'Summarize',
+    easier: 'Explain easier',
+    focus: 'Focus',
+    guide: 'Guide',
+    review: 'Wrong answers',
+    reset: 'Reset',
+    status: 'Status',
+    chatTitle: 'Study chat',
+    chatHint: 'Type your answer below. AI will guide you step by step, then finish with a final check.',
+    guideTitle: '📘 Guide',
+    guideSubtitle: 'How to use the app, study better, and solve common issues.',
+    helperTitle: '🤏 Groq mini helper',
+    helperHint: 'Uses the hidden backend API to answer questions quickly.',
+    helperPlaceholder: 'Example: How do I get a Groq API key?',
+    helperDefault: 'I am a tiny helper. Ask anything.',
+    notes: 'This app uses Vercel backend to keep the key safe. Study modes change the way AI teaches: Meaning = deep understanding, Memory = active recall + mnemonic, Logic = step-by-step reasoning.',
+    answerPlaceholder: 'Type your answer...',
+  },
+  es: {
+    title: '🤖 AI Study Buddy',
+    subtitle: 'Aprende con objetivo, recuerda más tiempo y entiende mejor sin saturarte.',
+    mode: 'Modo de estudio',
+    language: 'Idioma',
+    qcount: 'Preguntas',
+    rest: 'Ritmo',
+    source: 'Contenido',
+    start: 'Empezar',
+    summary: 'Resumen',
+    easier: 'Explicar fácil',
+    focus: 'Focus',
+    guide: 'Guía',
+    review: 'Errores',
+    reset: 'Reset',
+    status: 'Estado',
+    chatTitle: 'Chat de estudio',
+    chatHint: 'Escribe tu respuesta abajo. La IA te guía paso a paso y luego verifica con una pregunta final.',
+    guideTitle: '📘 Guía',
+    guideSubtitle: 'Cómo usar la app, estudiar mejor y resolver problemas comunes.',
+    helperTitle: '🤏 Groq mini helper',
+    helperHint: 'Usa la API oculta del backend para responder rápido.',
+    helperPlaceholder: 'Ejemplo: ¿Cómo consigo una Groq API key?',
+    helperDefault: 'Soy un ayudante pequeño. Pregunta lo que quieras.',
+    notes: 'Esta app usa backend en Vercel para mantener la clave segura. Los modos cambian la forma de enseñar: Significado = comprensión profunda, Memoria = active recall + mnemotecnia, Lógica = paso a paso.',
+    answerPlaceholder: 'Escribe tu respuesta...',
+  },
+  ja: {
+    title: '🤖 AI Study Buddy',
+    subtitle: '目的を持って学び、長く覚え、深く理解し、負担を減らす。',
+    mode: '学習モード',
+    language: '言語',
+    qcount: '問題数',
+    rest: '学習ペース',
+    source: '学習内容',
+    start: '開始',
+    summary: '要約',
+    easier: 'やさしく説明',
+    focus: '集中',
+    guide: 'ガイド',
+    review: '間違い復習',
+    reset: 'リセット',
+    status: '状態',
+    chatTitle: '学習チャット',
+    chatHint: '下に答えを入力してください。AIが段階的に案内し、最後に総合チェックをします。',
+    guideTitle: '📘 ガイド',
+    guideSubtitle: '使い方、学習のコツ、よくある問題の解決方法。',
+    helperTitle: '🤏 Groq mini helper',
+    helperHint: '非公開バックエンドAPIで素早く案内します。',
+    helperPlaceholder: '例: Groq API key の取り方は？',
+    helperDefault: '私は小さなヘルパーです。何でも聞いてください。',
+    notes: 'このアプリはVercelバックエンドを使ってキーを安全に保ちます。学習モードは教え方を変えます：Meaning = 深い理解、Memory = active recall + mnemonic、Logic = 手順重視。',
+    answerPlaceholder: '答えを入力...',
+  }
+};
+
+const SAMPLE_TEXTS = {
+  meaning: {
+    vi: 'Giải thích vì sao Cách mạng Tháng Tám 1945 có ý nghĩa lịch sử đặc biệt đối với Việt Nam.',
+    en: 'Explain why the August Revolution of 1945 is historically important for Vietnam.',
+    es: 'Explica por qué la Revolución de Agosto de 1945 es históricamente importante para Vietnam.',
+    ja: '1945年の八月革命がベトナム史にとって重要な理由を説明してください。'
+  },
+  memory: {
+    vi: 'Hãy giúp tôi học thuộc các phần chính của quá trình quang hợp và tạo mẹo nhớ ngắn.',
+    en: 'Help me memorize the main steps of photosynthesis and create a short mnemonic.',
+    es: 'Ayúdame a memorizar los pasos principales de la fotosíntesis y crea una mnemotecnia corta.',
+    ja: '光合成の主な流れを覚えるための短い語呂合わせを作ってください。'
+  },
+  logic: {
+    vi: 'Giải phương trình bậc hai x^2 - 5x + 6 = 0 và nêu từng bước suy luận.',
+    en: 'Solve the quadratic equation x^2 - 5x + 6 = 0 and show each reasoning step.',
+    es: 'Resuelve la ecuación cuadrática x^2 - 5x + 6 = 0 y muestra cada paso.',
+    ja: '二次方程式 x^2 - 5x + 6 = 0 を解き、各手順を示してください。'
+  }
+};
+
+const state = {
+  phase: 'idle',
+  language: 'vi',
+  studyMode: 'meaning',
+  sourceText: '',
+  questionCount: 5,
+  restMode: 'normal',
+  summary: '',
+  keyPoints: [],
+  quizQuestions: [],
+  currentIndex: 0,
+  answers: [],
+  finalQuestion: '',
+  finalAnswerKey: '',
+  evaluation: null,
+  round: 0,
+  correct: 0,
+  wrong: 0,
+  reviewDeck: [],
+  streak: 0,
+  lastStudyDate: '',
+  currentTopic: '',
+  guideBusy: false,
+  helperMessages: [],
+  userStartedAt: Date.now()
+};
+
+const els = {};
+[
+  'uiTitle','uiSubtitle','labelLanguage','labelMode','labelQuestionCount','labelRest','labelSource','startBtn','uiStatusTitle',
+  'uiNotes','chatTitle','chatHint','guideTitle','guideSubtitle','helperTitle','helperHint','phaseBadge','modeBadge','languageSelect',
+  'studyMode','questionCount','restMode','sourceText','messages','answerInput','roundStat','correctStat','wrongStat','streakStat',
+  'statusText','progressBar','tagRow','guideOverlay','guideMessages','guideInput','guideBadge','languageBadges'
+].forEach(id => els[id] = document.getElementById(id));
+
+function t() {
+  return LANG[state.language] || LANG.vi;
+}
+
+function syncTexts() {
+  const x = t();
+  document.documentElement.lang = state.language;
+  els.uiTitle.textContent = x.title;
+  els.uiSubtitle.textContent = x.subtitle;
+  els.labelLanguage.textContent = x.language;
+  els.labelMode.textContent = x.mode;
+  els.labelQuestionCount.textContent = x.qcount;
+  els.labelRest.textContent = x.rest;
+  els.labelSource.textContent = x.source;
+  els.startBtn.textContent = x.start;
+  els.uiStatusTitle.textContent = x.status;
+  els.chatTitle.textContent = x.chatTitle;
+  els.chatHint.textContent = x.chatHint;
+  els.guideTitle.textContent = x.guideTitle;
+  els.guideSubtitle.textContent = x.guideSubtitle;
+  els.helperTitle.textContent = x.helperTitle;
+  els.helperHint.textContent = x.helperHint;
+  els.answerInput.placeholder = x.answerPlaceholder;
+  els.sourceText.placeholder = x.source;
+  els.uiNotes.textContent = x.notes;
+  els.guideInput.placeholder = x.helperPlaceholder;
+  updateModeTitle();
+  renderLanguageBadges();
+}
+
+function updateModeTitle() {
+  const modeLabel = { meaning: {'vi':'Ý nghĩa','en':'Meaning','es':'Significado','ja':'意味'}, memory: {'vi':'Ghi nhớ','en':'Memory','es':'Memoria','ja':'記憶'}, logic: {'vi':'Tính toán logic','en':'Logic','es':'Lógica','ja':'論理'} };
+  const label = modeLabel[state.studyMode]?.[state.language] || modeLabel[state.studyMode]?.vi || 'Mode';
+  els.modeBadge.textContent = label.toUpperCase();
+}
+
+function renderLanguageBadges() {
+  const map = { vi:'VI', en:'EN', es:'ES', ja:'JA' };
+  els.languageBadges.innerHTML = Object.keys(map).map(code => `<button class="ghost" onclick="setLanguage('${code}')">${map[code]}</button>`).join('');
+}
+
+function setLanguage(lang) {
+  state.language = lang;
+  els.languageSelect.value = lang;
+  syncTexts();
+  addSys(lang === 'vi' ? 'Đã đổi ngôn ngữ giao diện.' : 'Language changed.');
+}
+
+function getModeMeta(mode) {
+  const base = {
+    meaning: {
+      title: { vi:'Ý nghĩa', en:'Meaning', es:'Significado', ja:'意味' },
+      style: {
+        vi:'Giải thích bản chất, ý nghĩa, ví dụ gần gũi, liên hệ thực tế.',
+        en:'Explain the meaning, core idea, and a practical example.',
+        es:'Explica el significado, la idea central y un ejemplo práctico.',
+        ja:'意味、核心、実例をわかりやすく説明する。'
+      },
+      focus: 'conceptual understanding',
+      rest: 600
+    },
+    memory: {
+      title: { vi:'Ghi nhớ', en:'Memory', es:'Memoria', ja:'記憶' },
+      style: {
+        vi:'Dùng active recall, chunking, mnemonic, và lặp lại cách quãng.',
+        en:'Use active recall, chunking, mnemonics, and spaced repetition.',
+        es:'Usa active recall, chunking, mnemotecnias y repetición espaciada.',
+        ja:'アクティブリコール、チャンク化、語呂合わせ、間隔反復を使う。'
+      },
+      focus: 'memorization and recall',
+      rest: 420
+    },
+    logic: {
+      title: { vi:'Tính toán logic', en:'Logic', es:'Lógica', ja:'論理' },
+      style: {
+        vi:'Chia nhỏ bước giải, kiểm tra suy luận, không nhảy cóc kết quả.',
+        en:'Break into steps, verify reasoning, do not jump to the answer.',
+        es:'Divide en pasos, verifica el razonamiento y no saltes al resultado.',
+        ja:'手順を分け、推論を確認し、答えに飛びつかない。'
+      },
+      focus: 'step-by-step reasoning',
+      rest: 540
+    }
+  };
+  return base[mode] || base.meaning;
+}
+
+function getModeTitle(mode) {
+  return getModeMeta(mode).title[state.language] || getModeMeta(mode).title.vi;
+}
+
+function setMode(mode) {
+  state.studyMode = mode;
+  els.studyMode.value = mode;
+  updateModeTitle();
+  renderTags();
+}
+
+function setSample(mode) {
+  state.sourceText = SAMPLE_TEXTS[mode][state.language] || SAMPLE_TEXTS[mode].vi;
+  els.sourceText.value = state.sourceText;
+  addSys(state.language === 'vi' ? 'Đã nạp nội dung mẫu.' : 'Sample loaded.');
+}
+
+function setStatus(text) {
+  els.statusText.textContent = text;
+}
+
+function setPhase(text) {
+  els.phaseBadge.textContent = text;
+}
+
+function scrollBottom() {
+  els.messages.scrollTop = els.messages.scrollHeight;
+}
+
+function escapeHtml(s){
+  return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+}
+
+function addMsg(text, who='ai') {
+  const div = document.createElement('div');
+  div.className = `msg ${who} fade`;
+  div.textContent = text;
+  els.messages.appendChild(div);
+  if (els.messages.children.length > 120) els.messages.removeChild(els.messages.firstElementChild);
+  scrollBottom();
+}
+
+function addSys(text){ addMsg(text, 'sys'); }
+function addBad(text){ addMsg(text, 'bad'); }
+function addWarn(text){ addMsg(text, 'warn'); }
+
+function clearMsgs(){ els.messages.innerHTML = ''; }
+
+function addGuide(text, who='ai'){
+  const div = document.createElement('div');
+  div.className = `msg ${who} fade`;
+  div.textContent = text;
+  els.guideMessages.appendChild(div);
+  if (els.guideMessages.children.length > 80) els.guideMessages.removeChild(els.guideMessages.firstElementChild);
+  els.guideMessages.scrollTop = els.guideMessages.scrollHeight;
+}
+
+function clearGuide(){ els.guideMessages.innerHTML = ''; }
+
+function updateStats() {
+  els.roundStat.textContent = state.round;
+  els.correctStat.textContent = state.correct;
+  els.wrongStat.textContent = state.wrong;
+  els.streakStat.textContent = state.streak;
+  const total = Math.max(state.quizQuestions.length + (state.phase === 'final-answer' || state.phase === 'done' ? 1 : 0), 1);
+  const done = Math.min(state.currentIndex, state.quizQuestions.length);
+  els.progressBar.style.width = `${Math.max(0, Math.min(100, Math.round((done/total)*100)))}%`;
+  renderTags();
+}
+
+function renderTags() {
+  const tags = [];
+  tags.push(getModeTitle(state.studyMode));
+  if (state.currentTopic) tags.push(state.currentTopic);
+  if (state.reviewDeck.length) tags.push(`${state.reviewDeck.length} review`);
+  if (state.streak) tags.push(`🔥 ${state.streak}`);
+  els.tagRow.innerHTML = tags.map(v => `<span class="tag">${escapeHtml(v)}</span>`).join('');
+}
+
+function loadReviewDeck() {
+  try { state.reviewDeck = JSON.parse(localStorage.getItem('ai_study_buddy_review_deck') || '[]'); }
+  catch { state.reviewDeck = []; }
+  state.streak = Number(localStorage.getItem('ai_study_buddy_streak') || '0');
+  state.lastStudyDate = localStorage.getItem('ai_study_buddy_last_date') || '';
+  syncStreak();
+}
+
+function saveReviewDeck() {
+  localStorage.setItem('ai_study_buddy_review_deck', JSON.stringify(state.reviewDeck.slice(-60)));
+  renderTags();
+}
+
+function syncStreak() {
+  const today = new Date().toISOString().slice(0,10);
+  if (!state.lastStudyDate) {
+    state.lastStudyDate = today;
+    state.streak = Math.max(state.streak, 1);
+  } else if (state.lastStudyDate !== today) {
+    const d = new Date();
+    d.setDate(d.getDate()-1);
+    const yesterday = d.toISOString().slice(0,10);
+    state.streak = (state.lastStudyDate === yesterday) ? (state.streak + 1) : 1;
+    state.lastStudyDate = today;
+  }
+  localStorage.setItem('ai_study_buddy_streak', String(state.streak));
+  localStorage.setItem('ai_study_buddy_last_date', state.lastStudyDate);
+  els.streakStat.textContent = state.streak;
+}
+
+function updateStudyDate() {
+  const today = new Date().toISOString().slice(0,10);
+  if (state.lastStudyDate !== today) {
+    const d = new Date();
+    d.setDate(d.getDate()-1);
+    const yesterday = d.toISOString().slice(0,10);
+    state.streak = (state.lastStudyDate === yesterday) ? (state.streak + 1) : 1;
+    state.lastStudyDate = today;
+    localStorage.setItem('ai_study_buddy_streak', String(state.streak));
+    localStorage.setItem('ai_study_buddy_last_date', state.lastStudyDate);
+  }
+  updateStats();
+}
+
+function extractJson(text){
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced) return fenced[1].trim();
+  const first = text.indexOf('{');
+  const last = text.lastIndexOf('}');
+  if (first !== -1 && last !== -1 && last > first) return text.slice(first, last+1);
+  return text.trim();
+}
+function safeJsonParse(text){
+  try { return JSON.parse(extractJson(text)); } catch { return null; }
+}
+
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+async function callStudy(action, payload = {}) {
+  const body = {
+    action,
+    language: state.language,
+    mode: state.studyMode,
+    questionCount: Number(els.questionCount.value),
+    restMode: els.restMode.value,
+    ...payload
+  };
+  const res = await fetch('/api/chat', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error || data?.message || `HTTP ${res.status}`);
+  return data;
+}
+
+async function callHelp(question) {
+  const res = await fetch('/api/help', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ question, language: state.language })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+  return data;
+}
+
+function openGuide() {
+  els.guideOverlay.classList.add('show');
+  els.guideOverlay.setAttribute('aria-hidden','false');
+  if (!els.guideMessages.children.length) {
+    addGuide(t().helperDefault, 'sys');
+    addGuide(state.language === 'vi'
+      ? 'Hỏi mình: cách lấy API key, chọn mode, sửa lỗi deploy, hoặc cách học tốt hơn.'
+      : 'Ask me: how to get an API key, choose a mode, fix deploy errors, or study better.', 'ai');
+  }
+  els.guideInput.focus();
+  setGuideBadge();
+}
+
+function closeGuide() {
+  els.guideOverlay.classList.remove('show');
+  els.guideOverlay.setAttribute('aria-hidden','true');
+}
+
+function setGuideBadge() {
+  els.guideBadge.textContent = state.guideBusy ? 'BUSY' : 'HELP';
+}
+
+function showInitial() {
+  addSys(state.language === 'vi'
+    ? 'Chọn chế độ học, dán nội dung, rồi bấm Bắt đầu.'
+    : 'Choose a study mode, paste content, then press Start.');
+}
+
+async function startLearning() {
+  state.sourceText = els.sourceText.value.trim();
+  state.questionCount = Number(els.questionCount.value);
+
+  if (!state.sourceText) {
+    addSys(state.language === 'vi' ? 'Bạn chưa nhập nội dung cần học.' : 'No learning content yet.');
+    return;
+  }
+
+  updateStudyDate();
+  state.phase = 'analyzing';
+  state.currentIndex = 0;
+  state.answers = [];
+  state.quizQuestions = [];
+  state.finalQuestion = '';
+  state.finalAnswerKey = '';
+  state.evaluation = null;
+  state.round = 0;
+  state.correct = 0;
+  state.wrong = 0;
+  state.currentTopic = '';
+  updateStats();
+
+  clearMsgs();
+  setPhase('ANALYZING');
+  els.startBtn.disabled = true;
+  setStatus(state.language === 'vi' ? 'Đang phân tích nội dung...' : 'Analyzing content...');
+  addSys(state.language === 'vi' ? '🧠 Đang phân tích nội dung...'
+    : '🧠 Analyzing content...');
+
+  try {
+    const data = await callStudy('analyze', {
+      text: state.sourceText
+    });
+
+    state.summary = data.summary || '';
+    state.keyPoints = Array.isArray(data.keyPoints) ? data.keyPoints : [];
+    state.quizQuestions = Array.isArray(data.questions) ? data.questions : [];
+    state.currentTopic = data.goal || getModeTitle(state.studyMode);
+    updateStats();
+
+    if (state.summary) addMsg((state.language === 'vi' ? 'Tóm tắt: ' : 'Summary: ') + state.summary, 'ai');
+    if (state.keyPoints.length) addMsg((state.language === 'vi' ? 'Ý chính:\n- ' : 'Key points:\n- ') + state.keyPoints.join('\n- '), 'ai');
+    if (data.motivation) addMsg(`✨ ${data.motivation}`, 'ai');
+    if (data.psychTips) addMsg((state.language === 'vi' ? 'Mẹo học:\n- ' : 'Study tips:\n- ') + data.psychTips.join('\n- '), 'ai');
+    if (data.restSuggestion?.enabled && data.restSuggestion.seconds) {
+      addSys((state.language === 'vi' ? 'Gợi ý nghỉ: ' : 'Suggested break: ') + Math.round(data.restSuggestion.seconds/60) + 'm');
+    }
+
+    state.phase = 'quiz';
+    setPhase('QUIZ');
+    setStatus(state.language === 'vi' ? 'Bắt đầu câu hỏi.' : 'Starting questions.');
+    addNextQuestion();
+  } catch (e) {
+    addBad((state.language === 'vi' ? 'Lỗi: ' : 'Error: ') + e.message);
+    setStatus(e.message);
+  } finally {
+    els.startBtn.disabled = false;
+  }
+}
+
+function addNextQuestion() {
+  if (state.currentIndex < state.quizQuestions.length) {
+    const q = state.quizQuestions[state.currentIndex];
+    state.round++;
+    updateStats();
+    addMsg(`❓ [${getModeTitle(state.studyMode)} ${state.currentIndex+1}] ${q.question}`, 'ai');
+    if (q.expectedFocus) addMsg((state.language === 'vi' ? 'Trọng tâm: ' : 'Focus: ') + q.expectedFocus, 'sys');
+    setStatus((state.language === 'vi' ? 'Câu ' : 'Question ') + `${state.currentIndex+1}/${state.quizQuestions.length}`);
+    return;
+  }
+  state.phase = 'finalizing';
+  setPhase('BOSS');
+  setStatus(state.language === 'vi' ? 'Đang tạo câu hỏi tổng...' : 'Creating final question...');
+  addSys(state.language === 'vi' ? '⏳ Đang gom lại để kiểm tra mức hiểu tổng.' : '⏳ Gathering final understanding check.');
+  createFinalQuestion();
+}
+
+async function createFinalQuestion() {
+  try {
+    const data = await callStudy('final', {
+      text: state.sourceText,
+      summary: state.summary,
+      keyPoints: state.keyPoints,
+      questions: state.quizQuestions,
+      answers: state.answers
+    });
+
+    state.finalQuestion = data.finalQuestion || (state.language === 'vi' ? 'Hãy tóm lại phần vừa học bằng lời của bạn.' : 'Summarize what you learned in your own words.');
+    state.finalAnswerKey = data.finalAnswerKey || '';
+    state.evaluation = data;
+    if (Array.isArray(data.reviewCards) && data.reviewCards.length) {
+      state.reviewDeck.push(...data.reviewCards.map(x => ({...x, sourceText: state.sourceText})));
+      saveReviewDeck();
+    }
+    updateStats();
+
+    addMsg(`🎯 ${state.finalQuestion}`, 'ai');
+    if (data.learnedWell) {
+      addMsg(data.encouragement?.good || (state.language === 'vi' ? '🎉 Làm tốt lắm!' : '🎉 Great job!'), 'ai');
+    } else {
+      addMsg(data.encouragement?.bad || (state.language === 'vi' ? 'Chưa ổn lắm, mình chỉ lại nhé.' : 'Not quite yet, let’s fix it.'), 'bad');
+      if (Array.isArray(data.weakPoints) && data.weakPoints.length) {
+        addMsg((state.language === 'vi' ? 'Lủng ở:\n- ' : 'Weak points:\n- ') + data.weakPoints.join('\n- '), 'bad');
+      }
+    }
+    addMsg(state.language === 'vi' ? 'Hãy trả lời câu tổng ở ô dưới.' : 'Answer the final question below.', 'sys');
+    state.phase = 'final-answer';
+    setPhase('FINAL');
+    setStatus(state.language === 'vi' ? 'Chờ câu trả lời tổng.' : 'Waiting for final answer.');
+  } catch (e) {
+    addBad((state.language === 'vi' ? 'Lỗi tạo câu tổng: ' : 'Final error: ') + e.message);
+    setStatus(e.message);
+  }
+}
+
+async function sendAnswer() {
+  const ans = els.answerInput.value.trim();
+  if (!ans) return;
+  if (state.phase === 'idle') {
+    addSys(state.language === 'vi' ? 'Bấm Bắt đầu trước đã.' : 'Press Start first.');
+    return;
+  }
+  if (state.phase === 'analyzing' || state.phase === 'finalizing') {
+    addSys(state.language === 'vi' ? 'Đang xử lý rồi, đợi chút nhé.' : 'Still processing, please wait.');
+    return;
+  }
+
+  els.answerInput.value = '';
+  addMsg(ans, 'user');
+
+  if (state.phase === 'quiz') {
+    const current = state.quizQuestions[state.currentIndex];
+    state.answers.push({ question: current.question, answer: ans, level: current.level || state.currentIndex + 1 });
+
+    try {
+      const judged = await callStudy('judge', {
+        question: current.question,
+        answer: ans,
+        expectedFocus: current.expectedFocus || ''
+      });
+
+      const ok = !!judged.correct;
+      state.correct += ok ? 1 : 0;
+      state.wrong += ok ? 0 : 1;
+      updateStats();
+
+      addMsg(`${ok ? '✅' : '❌'} ${judged.feedback || (ok ? (state.language === 'vi' ? 'Đúng rồi.' : 'Correct.') : (state.language === 'vi' ? 'Chưa đúng.' : 'Not quite.'))}`, ok ? 'ai' : 'bad');
+      if (!ok && judged.hint) addMsg((state.language === 'vi' ? 'Gợi ý: ' : 'Hint: ') + judged.hint, 'ai');
+      if (!ok) {
+        state.reviewDeck.push({ question: current.question, answerKey: current.expectedFocus || '', sourceText: state.sourceText });
+        saveReviewDeck();
+      }
+      state.currentIndex++;
+      setTimeout(addNextQuestion, 250);
+    } catch (e) {
+      state.wrong++;
+      updateStats();
+      addBad((state.language === 'vi' ? 'Lỗi chấm: ' : 'Judge error: ') + e.message);
+      state.currentIndex++;
+      setTimeout(addNextQuestion, 250);
+    }
+    return;
+  }
+
+  if (state.phase === 'final-answer') {
+    try {
+      const judged = await callStudy('evaluate_final', {
+        question: state.finalQuestion,
+        answer: ans,
+        answerKey: state.finalAnswerKey
+      });
+
+      addSys((state.language === 'vi' ? 'Điểm: ' : 'Score: ') + `${judged.score ?? 0}/100`);
+      if (judged.pass) {
+        addMsg(judged.celebrate || (state.language === 'vi' ? '🎉 Qua rồi!' : '🎉 You passed!'), 'ai');
+        state.correct++;
+      } else {
+        addMsg(judged.feedback || (state.language === 'vi' ? 'Chưa ổn.' : 'Not enough yet.'), 'bad');
+        if (judged.fix) addMsg((state.language === 'vi' ? 'Lủng ở: ' : 'Weak spot: ') + judged.fix, 'bad');
+        state.wrong++;
+      }
+      updateStats();
+      if (judged.nextStep) addMsg((state.language === 'vi' ? 'Bước tiếp theo: ' : 'Next step: ') + judged.nextStep, 'ai');
+      setPhase(judged.pass ? 'WIN' : 'RETRY');
+      state.phase = 'done';
+      setStatus(state.language === 'vi' ? 'Đã chấm xong.' : 'Done.');
+    } catch (e) {
+      addBad((state.language === 'vi' ? 'Lỗi chấm cuối: ' : 'Final judge error: ') + e.message);
+    }
+  }
+}
+
+async function explainEasier() {
+  if (!state.sourceText.trim()) {
+    addSys(state.language === 'vi' ? 'Chưa có nội dung.' : 'No content yet.');
+    return;
+  }
+  try {
+    addSys(state.language === 'vi' ? 'Đang làm phần dễ hiểu hơn...' : 'Making it easier...');
+    const data = await callStudy('explain', {
+      text: state.sourceText,
+      summary: state.summary,
+      topic: state.currentTopic,
+      question: state.quizQuestions[state.currentIndex]?.question || state.finalQuestion || ''
+    });
+    addMsg((state.language === 'vi' ? 'Dễ hiểu hơn:\n' : 'Easier explanation:\n') + (data.easyExplanation || ''), 'ai');
+    if (data.example) addMsg((state.language === 'vi' ? 'Ví dụ: ' : 'Example: ') + data.example, 'ai');
+    if (data.miniMnemonic) addMsg((state.language === 'vi' ? 'Mẹo nhớ: ' : 'Memory tip: ') + data.miniMnemonic, 'ai');
+  } catch (e) {
+    addBad((state.language === 'vi' ? 'Không giải thích được: ' : 'Failed to explain: ') + e.message);
+  }
+}
+
+async function summarizeNow() {
+  if (!state.sourceText.trim()) {
+    addSys(state.language === 'vi' ? 'Chưa có nội dung.' : 'No content yet.');
+    return;
+  }
+  try {
+    addSys(state.language === 'vi' ? 'Đang tóm tắt...' : 'Summarizing...');
+    const data = await callStudy('summarize', {
+      text: state.sourceText,
+      mode: state.studyMode
+    });
+    if (data.summary) addMsg((state.language === 'vi' ? 'Tóm tắt: ' : 'Summary: ') + data.summary, 'ai');
+    if (Array.isArray(data.keyPoints) && data.keyPoints.length) {
+      addMsg((state.language === 'vi' ? 'Ý chính:\n- ' : 'Key points:\n- ') + data.keyPoints.join('\n- '), 'ai');
+    }
+    if (data.studyTip) addMsg((state.language === 'vi' ? 'Mẹo học: ' : 'Study tip: ') + data.studyTip, 'ai');
+  } catch (e) {
+    addBad((state.language === 'vi' ? 'Lỗi tóm tắt: ' : 'Summary error: ') + e.message);
+  }
+}
+
+function toggleFocusMode() {
+  document.body.classList.toggle('focus-mode');
+  addSys(document.body.classList.contains('focus-mode')
+    ? (state.language === 'vi' ? 'Đã bật Focus mode.' : 'Focus mode enabled.')
+    : (state.language === 'vi' ? 'Đã tắt Focus mode.' : 'Focus mode disabled.'));
+}
+
+function resetApp() {
+  state.phase = 'idle';
+  state.summary = '';
+  state.keyPoints = [];
+  state.quizQuestions = [];
+  state.currentIndex = 0;
+  state.answers = [];
+  state.finalQuestion = '';
+  state.finalAnswerKey = '';
+  state.evaluation = null;
+  state.round = 0;
+  state.correct = 0;
+  state.wrong = 0;
+  state.currentTopic = '';
+  updateStats();
+  clearMsgs();
+  els.answerInput.value = '';
+  setPhase('READY');
+  els.startBtn.disabled = false;
+  setStatus(state.language === 'vi' ? 'Chưa bắt đầu.' : 'Not started.');
+  addSys(state.language === 'vi' ? 'Đã reset xong.' : 'Reset complete.');
+}
+
+function openReviewDeck() {
+  if (!state.reviewDeck.length) {
+    addSys(state.language === 'vi' ? 'Chưa có câu sai nào để ôn.' : 'No wrong answers to review yet.');
+    return;
+  }
+  const item = state.reviewDeck[state.reviewDeck.length - 1];
+  addSys((state.language === 'vi' ? 'Câu ôn gần nhất:\n' : 'Latest review card:\n') + item.question);
+  if (item.answerKey) addMsg((state.language === 'vi' ? 'Gợi ý đáp án: ' : 'Answer hint: ') + item.answerKey, 'ai');
+}
+
+function openGuide() {
+  els.guideOverlay.classList.add('show');
+  els.guideOverlay.setAttribute('aria-hidden','false');
+  if (!els.guideMessages.children.length) {
+    addGuide(t().helperDefault, 'sys');
+    addGuide(state.language === 'vi'
+      ? 'Hỏi mình: cách lấy API key, chọn mode, lỗi deploy, hoặc mẹo học tốt hơn.'
+      : 'Ask me: how to get an API key, choose a mode, fix deploy errors, or study better.', 'ai');
+  }
+  els.guideInput.focus();
+  setGuideBadge();
+}
+
+function closeGuide() {
+  els.guideOverlay.classList.remove('show');
+  els.guideOverlay.setAttribute('aria-hidden','true');
+}
+
+function setGuideBadge() {
+  els.guideBadge.textContent = state.guideBusy ? 'BUSY' : 'HELP';
+}
+
+async function sendGuideMessage() {
+  const q = els.guideInput.value.trim();
+  if (!q) return;
+  els.guideInput.value = '';
+  addGuide(q, 'user');
+
+  state.guideBusy = true;
+  setGuideBadge();
+  try {
+    const data = await callHelp(q);
+    addGuide(data.answer || (state.language === 'vi' ? 'Mình chưa hiểu rõ.' : 'I am not sure yet.'), 'ai');
+    if (data.step) addGuide((state.language === 'vi' ? 'Bước tiếp theo: ' : 'Next step: ') + data.step, 'sys');
+    if (data.tip) addGuide((state.language === 'vi' ? 'Mẹo: ' : 'Tip: ') + data.tip, 'ai');
+  } catch (e) {
+    addGuide((state.language === 'vi' ? 'Lỗi helper: ' : 'Helper error: ') + e.message, 'bad');
+  } finally {
+    state.guideBusy = false;
+    setGuideBadge();
+  }
+}
+
+function guideQuick(text){ els.guideInput.value = text; sendGuideMessage(); }
+
+els.languageSelect.addEventListener('change', (e) => {
+  setLanguage(e.target.value);
+});
+
+els.studyMode.addEventListener('change', (e) => {
+  state.studyMode = e.target.value;
+  updateModeTitle();
+  renderTags();
+});
+
+els.restMode.addEventListener('change', (e) => {
+  state.restMode = e.target.value;
+});
+
+els.guideOverlay.addEventListener('click', (e) => {
+  if (e.target === els.guideOverlay) closeGuide();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && els.guideOverlay.classList.contains('show')) closeGuide();
+});
+
+loadReviewDeck();
+syncTexts();
+updateModeTitle();
+updateStats();
+showInitial();
+addGuide('Groq mini helper is ready.', 'sys');
+addGuide('Use the Guide button to ask about API keys, modes, deploy, or study tips.', 'ai');
+</script>
+</body>
+</html>
